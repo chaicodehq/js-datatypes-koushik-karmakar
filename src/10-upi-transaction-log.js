@@ -9,8 +9,8 @@
  *   - transactions is array of objects:
  *     [{ id: "TXN001", type: "credit"/"debit", amount: 500,
  *        to: "Rahul", category: "food", date: "2025-01-15" }, ...]
- *   - Skip transactions where amount is not a positive number
- *   - Skip transactions where type is not "credit" or "debit"
+ *   - Skip transactions where amount is not a positive number //filter 
+ *   - Skip transactions where type is not "credit" or "debit" //filter
  *   - Calculate (on valid transactions only):
  *     - totalCredit: sum of all "credit" type amounts
  *     - totalDebit: sum of all "debit" type amounts
@@ -32,7 +32,9 @@
  *   - Agar after filtering invalid transactions, koi valid nahi bacha, return null
  *
  * @param {Array<{ id: string, type: string, amount: number, to: string, category: string, date: string }>} transactions
- * @returns {{ totalCredit: number, totalDebit: number, netBalance: number, transactionCount: number, avgTransaction: number, highestTransaction: object, categoryBreakdown: object, frequentContact: string, allAbove100: boolean, hasLargeTransaction: boolean } | null}
+ * @returns {{ totalCredit: number, totalDebit: number, netBalance: number, transactionCount: number,
+ *  avgTransaction: number, highestTransaction: object, categoryBreakdown: object, frequentContact: string, 
+ * allAbove100: boolean, hasLargeTransaction: boolean } | null}
  *
  * @example
  *   analyzeUPITransactions([
@@ -40,12 +42,76 @@
  *     { id: "T2", type: "debit", amount: 200, to: "Swiggy", category: "food", date: "2025-01-02" },
  *     { id: "T3", type: "debit", amount: 100, to: "Swiggy", category: "food", date: "2025-01-03" }
  *   ])
- *   // => { totalCredit: 5000, totalDebit: 300, netBalance: 4700,
- *   //      transactionCount: 3, avgTransaction: 1767,
- *   //      highestTransaction: { id: "T1", ... },
- *   //      categoryBreakdown: { income: 5000, food: 300 },
- *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
+//  *   // => { totalCredit: 5000, totalDebit: 300, netBalance: 4700,
+//  *   //      transactionCount: 3, avgTransaction: 1767,
+//  *   //      highestTransaction: { id: "T1", ... },
+//  *   //      categoryBreakdown: { income: 5000, food: 300 },
+//  *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
  */
 export function analyzeUPITransactions(transactions) {
-  // Your code here
+  if (!Array.isArray(transactions) || transactions.length === 0) return null;
+  const validTransaction = transactions.filter(
+    (trans) =>
+      (trans.type === "credit" || trans.type === "debit") &&
+      trans.amount > 0 &&
+      typeof trans.amount === "number",
+  );
+
+  if (validTransaction.length === 0) return null;
+  const totalTransactionAmount = validTransaction.reduce(
+    (sum, curr) => sum + curr.amount,
+    0,
+  );
+
+  const totalCredit = validTransaction
+    .filter((item) => item.type === "credit")
+    .reduce((sum, curr) => sum + curr.amount, 0);
+
+  const totalDebit = validTransaction
+    .filter((item) => item.type === "debit")
+    .reduce((sum, curr) => sum + curr.amount, 0);
+
+  const netBalance = totalCredit - totalDebit;
+  const transactionCount = validTransaction.length;
+  const avgTransaction = Math.round(totalTransactionAmount / transactionCount);
+  const highestTransaction = validTransaction.reduce((sum, curr) =>
+    sum.amount > curr.amount ? sum : curr,
+  );
+
+  const categoryBreakdown = validTransaction.reduce((acc, curr) => {
+    acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
+    return acc;
+  }, {});
+
+  let frequentContact = null;
+  let maxCount = 0;
+
+  const freq = validTransaction.reduce((acc, curr) => {
+    acc[curr.to] = (acc[curr.to] || 0) + 1;
+    return acc;
+  }, {});
+
+  for (const [contact, count] of Object.entries(freq)) {
+    if (count > maxCount) {
+      maxCount = count;
+      frequentContact = contact;
+    }
+  }
+
+  const allAbove100 = validTransaction.every((item) => item.amount > 100);
+  const hasLargeTransaction = validTransaction.some(
+    (item) => item.amount >= 5000,
+  );
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    transactionCount,
+    avgTransaction,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact,
+    allAbove100,
+    hasLargeTransaction,
+  };
 }

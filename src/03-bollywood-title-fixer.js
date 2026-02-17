@@ -24,11 +24,42 @@
  *
  * @example
  *   fixBollywoodTitle("  DILWALE   DULHANIA   LE   JAYENGE  ")
- *   // => "Dilwale Dulhania Le Jayenge"
+//  *   // => "Dilwale Dulhania Le Jayenge"
  *
  *   fixBollywoodTitle("dil ka kya kare")
- *   // => "Dil ka Kya Kare"
+//  *   // => "Dil ka Kya Kare"
  */
 export function fixBollywoodTitle(title) {
   // Your code here
+  if (typeof title !== "string" || title.trim().length === 0) return "";
+
+  let words = [
+    "ka",
+    "ki",
+    "ke",
+    "se",
+    "aur",
+    "ya",
+    "the",
+    "of",
+    "in",
+    "a",
+    "an",
+  ];
+
+  return title
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, index) => {
+      if (index === 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+
+      if (words.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
 }

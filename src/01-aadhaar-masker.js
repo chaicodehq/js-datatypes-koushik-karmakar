@@ -19,7 +19,6 @@
  *
  * @param {string} aadhaarNumber - 12-digit Aadhaar number as string
  * @returns {string} Masked Aadhaar in format "XXXX-XXXX-1234" or "INVALID"
- *
  * @example
  *   maskAadhaar("123456781234")
  *   // => "XXXX-XXXX-1234"
@@ -29,4 +28,12 @@
  */
 export function maskAadhaar(aadhaarNumber) {
   // Your code here
+  if (
+    typeof aadhaarNumber !== "string" ||
+    aadhaarNumber.length !== 12 ||
+    !/^[0-9]+$/.test(aadhaarNumber)
+  )
+    return "INVALID";
+
+  return `${"X".repeat(4)}-${"X".repeat(4)}-${aadhaarNumber.slice(-4)}`;
 }

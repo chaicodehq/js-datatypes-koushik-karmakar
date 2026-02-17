@@ -34,17 +34,72 @@
  *
  * @param {Array<{ name: string, price: number, qty: number, addons?: string[] }>} cart
  * @param {string} [coupon] - Optional coupon code
- * @returns {{ items: Array<{ name: string, qty: number, basePrice: number, addonTotal: number, itemTotal: number }>, subtotal: number, deliveryFee: number, gst: number, discount: number, grandTotal: number } | null}
+ * @returns {{ items: Array<{ name: string, qty: number, basePrice: number, addonTotal: number, itemTotal: number }>,
+ *  subtotal: number, 
+ * deliveryFee: number, 
+ * gst: number, 
+ * discount: number, 
+ * grandTotal: number } | null}
  *
  * @example
- *   buildZomatoOrder([{ name: "Biryani", price: 300, qty: 1, addons: ["Raita:30"] }], "FLAT100")
- *   // subtotal: 330, deliveryFee: 30, gst: 16.5, discount: 100
- *   // grandTotal: 330 + 30 + 16.5 - 100 = 276.5
+//  *   buildZomatoOrder([{ name: "Biryani", price: 300, qty: 1, addons: ["Raita:30"] }], "FLAT100")
+//  *   // subtotal: 330, deliveryFee: 30, gst: 16.5, discount: 100
+//  *   // grandTotal: 330 + 30 + 16.5 - 100 = 276.5
  *
- *   buildZomatoOrder([{ name: "Pizza", price: 500, qty: 2, addons: [] }], "FIRST50")
- *   // subtotal: 1000, deliveryFee: 0, gst: 50, discount: min(500, 150) = 150
- *   // grandTotal: 1000 + 0 + 50 - 150 = 900
+//  *   buildZomatoOrder([{ name: "Pizza", price: 500, qty: 2, addons: [] }], "FIRST50")
+//  *   // subtotal: 1000, deliveryFee: 0, gst: 50, discount: min(500, 150) = 150
+//  *   // grandTotal: 1000 + 0 + 50 - 150 = 900
  */
 export function buildZomatoOrder(cart, coupon) {
-  // Your code here
+  if (!Array.isArray(cart) || cart.length === 0) return null;
+  const items = cart
+    .filter((item) => item.qty > 0)
+    .map((menu) => {
+      const addons = Array.isArray(menu.addons) ? menu.addons : [];
+
+      const addonTotal = addons.reduce(
+        (sum, addon) => sum + parseFloat(addon.split(":")[1]),
+        0,
+      );
+
+      const itemTotal = (menu.price + addonTotal) * menu.qty;
+
+      return {
+        name: menu.name,
+        qty: menu.qty,
+        basePrice: menu.price,
+        addonTotal,
+        itemTotal,
+      };
+    });
+
+  const subtotal = items.reduce((sum, item) => sum + item.itemTotal, 0);
+  // deliveryFee: Rs 30 if subtotal < 500, Rs 15 if 500-999, FREE (0) if >= 1000
+  let deliveryFee = subtotal < 500 ? 30 : subtotal < 1000 ? 15 : 0;
+  const gst = parseFloat((subtotal * 0.05).toFixed(2));
+  const c = typeof coupon === "string" ? coupon.toUpperCase() : null;
+  let discount = 0;
+
+  if (c === "FIRST50") {
+    discount = Math.min(subtotal * 0.5, 150);
+  } else if (c === "FLAT100") {
+    discount = 100;
+  } else if (c === "FREESHIP") {
+    discount = deliveryFee;
+    deliveryFee = 0;
+  }
+
+  const grandTotal = parseFloat(
+    Math.max(subtotal + deliveryFee + gst - discount, 0).toFixed(2),
+  );
+  //  *   // subtotal: 1000, deliveryFee: 0, gst: 50, discount: min(500, 150) = 150
+  //  *   // grandTotal: 1000 + 0 + 50 - 150 = 900
+  return {
+    items,
+    subtotal,
+    deliveryFee,
+    gst,
+    discount,
+    grandTotal,
+  };
 }

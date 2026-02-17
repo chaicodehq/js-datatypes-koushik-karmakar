@@ -22,11 +22,28 @@
  *
  * @example
  *   formatChaiMenu([{ name: "masala chai", price: 15 }, { name: "samosa", price: 12 }])
- *   // => "MASALA CHAI - Rs.15 | SAMOSA - Rs.12"
+//  *   // => "MASALA CHAI - Rs.15 | SAMOSA - Rs.12"
  *
  *   formatChaiMenu([])
  *   // => ""
  */
 export function formatChaiMenu(items) {
   // Your code here
+  if (
+    !Array.isArray(items) ||
+    items.length === 0 ||
+    items === null ||
+    items === undefined
+  )
+    return "";
+  let newItems = items.filter(
+    (item) =>
+      item.price > 0 && item.name.length !== 0 && typeof item.name === "string",
+  );
+
+  let capitalItem = newItems.map(
+    (item) => `${item.name.toUpperCase()} - Rs.${item.price}`,
+  );
+
+  return capitalItem.join(" | ");
 }

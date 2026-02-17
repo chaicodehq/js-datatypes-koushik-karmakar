@@ -35,14 +35,54 @@
  *     { name: "CSK", purse: 9000 },
  *     [{ name: "Dhoni", role: "wk", price: 1200 }, { name: "Jadeja", role: "ar", price: 1600 }]
  *   )
- *   // => { teamName: "CSK", totalSpent: 2800, remaining: 6200, playerCount: 2,
- *   //      costliestPlayer: { name: "Jadeja", role: "ar", price: 1600 },
- *   //      cheapestPlayer: { name: "Dhoni", role: "wk", price: 1200 },
- *   //      averagePrice: 1400, byRole: { wk: 1, ar: 1 }, isOverBudget: false }
+//  *   // => { teamName: "CSK", totalSpent: 2800, remaining: 6200, playerCount: 2,
+//  *   //      costliestPlayer: { name: "Jadeja", role: "ar", price: 1600 },
+//  *   //      cheapestPlayer: { name: "Dhoni", role: "wk", price: 1200 },
+//  *   //      averagePrice: 1400, byRole: { wk: 1, ar: 1 }, isOverBudget: false }
  *
  *   iplAuctionSummary({ name: "RCB", purse: 500 }, [{ name: "Kohli", role: "bat", price: 1700 }])
- *   // => { ..., remaining: -1200, isOverBudget: true }
+//  *   // => { ..., remaining: -1200, isOverBudget: true }
  */
 export function iplAuctionSummary(team, players) {
   // Your code here
+  if (
+    team === null ||
+    typeof team !== "object" ||
+    Number.isNaN(team.purse) ||
+    team.purse < 0 ||
+    !Array.isArray(players) ||
+    players.length === 0 ||
+    !Object.keys(team).includes("purse")
+  )
+    return null;
+  let totalSpent = players.reduce((sum, player) => sum + player.price, 0);
+  let remaining = team.purse - totalSpent;
+  let playerCount = players.length;
+  const highestPlayer = players.reduce((max, current) => {
+    return current.price > max.price ? current : max;
+  });
+  totalSpent;
+
+  const lowePlayer = players.reduce((max, current) => {
+    return current.price < max.price ? current : max;
+  });
+  let averagePrice = Math.round(totalSpent / playerCount);
+  let isOverBudget = team.purse < totalSpent;
+
+  // [{ name: "Dhoni", role: "wk", price: 1200 }, { name: "Jadeja", role: "ar", price: 1600 }]
+  let role = players.reduce((acc, curr) => {
+    acc[curr.role] = (acc[curr.role] || 0) + 1;
+    return acc;
+  }, {});
+  return {
+    teamName: String(team.name),
+    totalSpent,
+    remaining,
+    playerCount,
+    costliestPlayer: highestPlayer,
+    cheapestPlayer: lowePlayer,
+    averagePrice,
+    byRole: role,
+    isOverBudget,
+  };
 }
